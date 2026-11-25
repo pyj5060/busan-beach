@@ -15,7 +15,13 @@ if uploaded_file is not None:
         uploaded_file.seek(0)
         df = pd.read_csv(uploaded_file, encoding="cp949")
 
-    df = df.set_index(df.columns[0])
+    df.columns = df.columns.str.strip()
+
+    if {'연도별', '해수욕장명', '방문자수(천명)'}.issubset(df.columns):
+        df['해수욕장명'] = df['해수욕장명'].str.strip()
+        chart_df = df.pivot(index='연도별', columns='해수욕장명', values='방문자수(천명)')
+    else:
+        chart_df = df.set_index(df.columns[0])
 
     col1, col2 = st.columns([1, 1])
 
@@ -25,10 +31,10 @@ if uploaded_file is not None:
 
     with col2:
         st.subheader("📌 분석 요약")
-        st.write(f"- 총 **{len(df)}개** 기간의 데이터가 로드되었습니다.")
-        st.write(f"- 분석 대상 항목: **{', '.join(df.columns)}**")
+        st.write(f"- 총 **{len(chart_df)}개** 연도(2015~2025)의 데이터가 로드되었습니다.")
+        st.write(f"- 분석 대상 해수욕장: **{', '.join(chart_df.columns)}**")
 
-    st.subheader("📈 연도별 방문객 수 추이 그래프")
-    st.line_chart(df)
+    st.subheader("📈 연도별 방문객 수 추이 그래프 (단위: 천 명)")
+    st.line_chart(chart_df)
 else:
     st.info("👆 위 상자를 눌러 분석할 CSV 파일을 먼저 선택해 주세요.")
