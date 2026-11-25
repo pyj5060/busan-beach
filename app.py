@@ -4,32 +4,31 @@ import pandas as pd
 st.set_page_config(page_title="부산 해수욕장 방문객", page_icon="🌊", layout="wide")
 
 st.title("🌊 부산 주요 해수욕장 연도별 방문객 수 변화")
-st.write("해운대, 광안리, 송정 등 부산 주요 해수욕장의 최근 5년간 방문객 수 추이를 분석한 대시보드입니다.")
+st.write("CSV 파일을 업로드하면 해수욕장별 방문객 수 표와 추이 그래프를 분석해 줍니다.")
 
-data = {
-    '연도': ['2019', '2020', '2021', '2022', '2023'],
-    '해운대': [1100, 750, 850, 950, 1050],
-    '광안리': [850, 600, 700, 800, 900],
-    '송정': [400, 300, 350, 420, 480],
-    '다대포': [350, 250, 300, 350, 400],
-    '송도': [300, 200, 250, 280, 320]
-}
+uploaded_file = st.file_uploader("방문객 데이터 CSV 파일을 업로드하세요", type=["csv"])
 
-df = pd.DataFrame(data).set_index('연도')
+if uploaded_file is not None:
+    try:
+        df = pd.read_csv(uploaded_file)
+    except UnicodeDecodeError:
+        uploaded_file.seek(0)
+        df = pd.read_csv(uploaded_file, encoding="cp949")
 
-col1, col2 = st.columns([1, 1])
+    df = df.set_index(df.columns[0])
 
-with col1:
-    st.subheader("📊 방문객 수 데이터 (단위: 만 명)")
-    st.dataframe(df, use_container_width=True)
+    col1, col2 = st.columns([1, 1])
 
-with col2:
-    st.subheader("📌 분석 요약")
-    st.write("- 2020년 팬데믹 영향으로 방문객이 크게 감소했습니다.")
-    st.write("- 2021년 이후 지속적인 회복세를 보이고 있습니다.")
-    st.write("- 해운대와 광안리가 여전히 가장 높은 방문객 비중을 차지합니다.")
+    with col1:
+        st.subheader("📊 업로드된 방문객 수 데이터")
+        st.dataframe(df, use_container_width=True)
 
-st.subheader("📈 연도별 방문객 수 추이 그래프")
-st.line_chart(df)
+    with col2:
+        st.subheader("📌 분석 요약")
+        st.write(f"- 총 **{len(df)}개** 기간의 데이터가 로드되었습니다.")
+        st.write(f"- 분석 대상 항목: **{', '.join(df.columns)}**")
 
-st.caption("※ 본 웹사이트의 데이터는 차트 시각화 예시를 위해 임의로 생성된 가상 데이터입니다.")
+    st.subheader("📈 연도별 방문객 수 추이 그래프")
+    st.line_chart(df)
+else:
+    st.info("👆 위 상자를 눌러 분석할 CSV 파일을 먼저 선택해 주세요.")
